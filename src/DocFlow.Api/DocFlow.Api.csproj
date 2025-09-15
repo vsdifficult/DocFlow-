@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+  </ItemGroup> 
+
+  <ItemGroup>
+    <ProjectReference Include="..\DocFlow.Domain\DocFlow.Domain.csproj" /> 
+    <ProjectReference Include="..\DocFlow.Application\DocFlow.Application.csproj" />
   </ItemGroup>
 
 </Project>
