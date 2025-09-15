@@ -11,8 +11,9 @@
   </ItemGroup> 
 
   <ItemGroup>
-    <ProjectReference Include="..\DocFlow.Domain\DocFlow.Domain.csproj" /> 
+    <ProjectReference Include="..\DocFlow.Domain\DocFlow.Domain.csproj" />
     <ProjectReference Include="..\DocFlow.Application\DocFlow.Application.csproj" />
+    <ProjectReference Include="..\DocFlow.Infrastructure\DocFlow.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

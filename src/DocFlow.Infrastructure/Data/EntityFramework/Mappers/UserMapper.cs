@@ -32,5 +32,16 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Mappers
                 EmailVerified = dto.EmailVerified
             };
         }
+
+        public static void UpdateEntity(UserEntity entity, UserDto dto)
+        {
+            entity.Email = dto.Email;
+            entity.Username = dto.Username;
+            entity.Role = dto.Role;
+            entity.Password = dto.Password;
+            entity.Code = dto.Code;
+            entity.EmailVerified = dto.EmailVerified;
+            entity.UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

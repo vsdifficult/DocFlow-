@@ -49,7 +49,6 @@ Integration tests: Testcontainers
 
 Run tests:
 
-bash```
 dotnet test
 ```
 

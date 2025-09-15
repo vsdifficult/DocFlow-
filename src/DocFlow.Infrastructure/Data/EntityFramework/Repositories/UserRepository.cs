@@ -20,7 +20,7 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
         public async Task<Guid> CreateAsync(UserDto entity)
         {
             var userEntity = UserMapper.ToEntity(entity);
-            userEntity = userEntity with { Id = Guid.NewGuid() };
+            userEntity.Id = Guid.NewGuid();
 
             await _context.Users.AddAsync(userEntity);
             await _context.SaveChangesAsync();
@@ -66,11 +66,12 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
             return user == null ? null : UserMapper.ToDto(user);
         }
 
-        public Task<List<UserDto>> GetUnverifiedOlderThanAsync(DateTime cutoff)
+        public async Task<List<UserDto>> GetUnverifiedOlderThanAsync(DateTime cutoff)
         {
-            // INFO: Cannot implement this method because there is no timestamp on the UserEntity.
-            // A CreatedAt property on UserEntity would be required.
-            return Task.FromResult(new List<UserDto>());
+            return await _context.Users
+                .Where(u => !u.EmailVerified && u.CreatedAt < cutoff)
+                .Select(u => UserMapper.ToDto(u))
+                .ToListAsync();
         }
 
         public async Task<UserRole> GetUserRoleAsync(Guid userId)
@@ -100,10 +101,8 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
                 return false;
             }
 
-            var updatedUser = user with { EmailVerified = true };
-            
-            _context.Users.Remove(user);
-            await _context.Users.AddAsync(updatedUser);
+            user.EmailVerified = true;
+            user.UpdatedAt = DateTime.UtcNow;
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -116,10 +115,8 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
                 return false;
             }
             
-            var updatedUser = user with { Code = code };
-
-            _context.Users.Remove(user);
-            await _context.Users.AddAsync(updatedUser);
+            user.Code = code;
+            user.UpdatedAt = DateTime.UtcNow;
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -137,9 +134,7 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
                 return false;
             }
 
-            _context.Users.Remove(user);
-            var updatedUser = UserMapper.ToEntity(entity);
-            await _context.Users.AddAsync(updatedUser);
+            UserMapper.UpdateEntity(user, entity);
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -150,11 +145,9 @@ namespace DocFlow.Infrastructure.Data.EntityFramework.Repositories
             {
                 return false;
             }
-
-            var updatedUser = user with { Password = new_password };
-
-            _context.Users.Remove(user);
-            await _context.Users.AddAsync(updatedUser);
+            
+            user.Password = new_password;
+            user.UpdatedAt = DateTime.UtcNow;
 
             return await _context.SaveChangesAsync() > 0;
         }

@@ -13,6 +13,10 @@ builder.Services.AddDbContext<DocFlowDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentVersionRepository, DocumentVersionRepository>();
+builder.Services.AddScoped<IApprovalStepRepository, ApprovalStepRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 
 builder.Services.AddEndpointsApiExplorer();
