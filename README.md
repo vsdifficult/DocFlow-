@@ -34,8 +34,8 @@ DocFlow is an electronic document management system that allows users to upload,
 
 ### Clone the repository
 ```bash
-git clone https://github.com/your-username/docflow-backend.git
-cd docflow-backend
+git clone https://github.com/vsdifficult/DocFlow-.git
+cd DocFlow-
 
 docker-compose up --build
 API will be available at:
