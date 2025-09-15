@@ -1,14 +1,15 @@
-using DocFlow.Domain.Models; 
 
-namespace DocFlow.Domain.Entities;
+using DocFlow.Domain.Models;
 
-public record UserEntity
+namespace DocFlow.Domain.Entities
 {
-    public required Guid Id { get; init; }
-    public required string Email { get; init; }
-    public required string Username { get; init; }
-    public required UserRole Role { get; init; } 
-    public required string Password { get; init; } 
-    public required string Code { get; init; }
-    public required bool EmailVerified { get; init; } 
+    public class UserEntity : BaseEntity
+    {
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public UserRole Role { get; set; }
+        public string Password { get; set; }
+        public string? Code { get; set; }
+        public bool EmailVerified { get; set; }
+    }
 }

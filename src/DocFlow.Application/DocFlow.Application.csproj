@@ -3,6 +3,9 @@
   <ItemGroup>
     <ProjectReference Include="..\DocFlow.Domain\DocFlow.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+  </ItemGroup> 
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
