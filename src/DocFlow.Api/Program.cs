@@ -1,9 +1,11 @@
 using DocFlow.Api.Features;
 using DocFlow.Application.Repositories;
+using DocFlow.Application.Services.Implementations.BFF;
 using DocFlow.Application.Services.Interfaces;
 using DocFlow.Infrastructure.Auth;
 using DocFlow.Infrastructure.Data.EntityFramework;
 using DocFlow.Infrastructure.Data.EntityFramework.Repositories;
+using DocFlow.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<DocFlowDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-builder.Services.AddScoped<IDocumentVersionRepository, DocumentVersionRepository>();
-builder.Services.AddScoped<IApprovalStepRepository, ApprovalStepRepository>();
-builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddSingleton<IFileStorageService>(new LocalStorageService("wwwroot/uploads"));
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -34,5 +33,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapAuthEndpoints();
+app.MapDocumentEndpoints();
 
 app.Run();
