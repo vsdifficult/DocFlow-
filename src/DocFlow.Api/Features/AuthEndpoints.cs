@@ -22,7 +22,7 @@ public static class AuthEndpoints
         group.MapPost("/signin", async (IAuthenticationService authService, UserLoginDto loginDto) =>
         {
             var result = await authService.SignInAsync(loginDto);
-            return result.Success ? Results.Ok(result) : Results.Unauthorized();
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result.ErrorMessage);
         });
 
         group.MapPost("/signout", async (IAuthenticationService authService, string token) =>
