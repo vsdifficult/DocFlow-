@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  docflow-api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=docflow-db;Database=DocFlow;User Id=sa;Password=Your_password123;TrustServerCertificate=True;
+    depends_on:
+      - docflow-db
+
+  docflow-db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_password123
+    volumes:
+      - docflow-db-data:/var/opt/mssql
+
+volumes:
+  docflow-db-data:

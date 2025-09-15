@@ -39,7 +39,12 @@ public class AuthService : IAuthenticationService
 
         // TODO: Send verification code via email
 
-        return new AuthResult { Success = true, UserId = userId };
+        // For now, we will consider the email verified on signup to allow immediate login.
+        await _userRepository.SetEmailVerifiedAsync(registrationDto.Email);
+
+        var token = await GenerateTokenAsync(userId, userDto.Role);
+
+        return new AuthResult { Success = true, UserId = userId, Token = token, Role = userDto.Role };
     }
 
     public async Task<AuthResult> SignInAsync(UserLoginDto loginDto)

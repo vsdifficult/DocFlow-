@@ -1,27 +1,26 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0
-
+# Use the SDK image to build the application
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
+# Copy csproj files and restore as distinct layers
 COPY ["src/DocFlow.Domain/DocFlow.Domain.csproj", "src/DocFlow.Domain/"]
 COPY ["src/DocFlow.Application/DocFlow.Application.csproj", "src/DocFlow.Application/"]
 COPY ["src/DocFlow.Infrastructure/DocFlow.Infrastructure.csproj", "src/DocFlow.Infrastructure/"]
 COPY ["src/DocFlow.Api/DocFlow.Api.csproj", "src/DocFlow.Api/"]
-
 RUN dotnet restore "src/DocFlow.Api/DocFlow.Api.csproj"
 
+# Copy everything else and build
 COPY . .
+WORKDIR "/app/src/DocFlow.Api"
+RUN dotnet publish -c Release -o /app/publish
 
-WORKDIR /app/src/DocFlow.Api
-RUN dotnet build -c Release -o /app/build
+# Use the ASP.NET runtime image for the final stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
 
-RUN dotnet tool install dotnet-ef --tool-path /app/tools
-ENV PATH="${PATH}:/app/tools"
-ENV HOME=/tmp
-ENV DOTNET_CLI_HOME=/tmp
+# Create a non-root user
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
 
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
-RUN dotnet publish /app/src/DocFlow.Api/DocFlow.Api.csproj -c Release -o /app/publish
-
-WORKDIR /app/publish
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENTRYPOINT ["dotnet", "DocFlow.Api.dll"]
