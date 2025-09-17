@@ -27,8 +27,6 @@ public interface IAuthenticationService
     Task<AuthResult> SignUpAsync(UserRegistrationDto registrationDto);
     Task<bool> SignOutAsync(string token);
     Task<UserRole> GetUserRoleAsync(Guid userId);
-    Task<bool> ValidateTokenAsync(string token);
-    Task<string> GenerateTokenAsync(Guid userId, UserRole role);
     Task<Guid?> GetUserIdFromTokenAsync(string token);
     Task<AuthResult> VerifyEmailAsync(EmailVerificationDto verificationDto);
     Task<AuthResult> RequestPasswordResetAsync(PasswordResetRequestDto dto);

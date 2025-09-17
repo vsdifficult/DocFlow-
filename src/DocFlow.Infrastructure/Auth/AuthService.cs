@@ -4,7 +4,7 @@ using DocFlow.Domain.Dtos;
 using DocFlow.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
+using DocFlow.Infrastructure.Data; 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -15,12 +15,14 @@ namespace DocFlow.Infrastructure.Auth
     public class AuthService : IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration; 
+        private readonly AppDbOptions _options;
 
         public AuthService(IUserRepository userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _options = configuration.GetSection(AppDbOptions.Position).Get<AppDbOptions>();
         }
 
         public async Task<AuthResult> SignUpAsync(UserRegistrationDto registrationDto)
@@ -47,7 +49,7 @@ namespace DocFlow.Infrastructure.Auth
             var userId = await _userRepository.CreateAsync(userDto);
 
             // TODO: Send verification code via email
-
+            
             // For now, we will consider the email verified on signup to allow immediate login.
             await _userRepository.SetEmailVerifiedAsync(registrationDto.Email);
 
@@ -105,24 +107,28 @@ namespace DocFlow.Infrastructure.Auth
             return new AuthResult { Success = true };
         }
 
-        public Task<string> GenerateTokenAsync(Guid userId, UserRole role)
+        private async Task<string> GenerateTokenAsync(Guid userId, UserRole role)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.ASCII.GetBytes(_options.JwtSecret);
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, userId.ToString()),
+                new(ClaimTypes.Role, role.ToString())
+            };
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                    new Claim(ClaimTypes.Role, role.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_options.TokenExpirationMinutes),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return Task.FromResult(tokenHandler.WriteToken(token));
+            return tokenHandler.WriteToken(token);
         }
 
         public Task<Guid?> GetUserIdFromTokenAsync(string token)
@@ -152,33 +158,6 @@ namespace DocFlow.Infrastructure.Auth
             catch
             {
                 return Task.FromResult<Guid?>(null);
-            }
-        }
-
-        public Task<bool> ValidateTokenAsync(string token)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-
-            try
-            {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = _configuration["Jwt:Issuer"],
-                    ValidateAudience = true,
-                    ValidAudience = _configuration["Jwt:Audience"],
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                return Task.FromResult(true);
-            }
-            catch
-            {
-                return Task.FromResult(false);
             }
         }
 
